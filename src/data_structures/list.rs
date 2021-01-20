@@ -5,7 +5,7 @@ pub trait List<T> {
     fn is_empty(&self) -> bool;
     fn add_first(&self, node: Box<Node<T>>);
     fn add_last(&self, node: Box<Node<T>>);
-    fn remove_first(&self) -> Option<Box<Node<T>>>;
+    fn remove_first(&self) -> Option<Node<T>>;
 }
 
 #[derive(Clone)]
@@ -24,6 +24,10 @@ impl<T> Node<T> {
 
     fn link(&mut self, next: Box<Node<T>>) {
         self.next = Some(next);
+    }
+
+    fn next(&self) -> Option<Box<Node<T>>> {
+        self.next
     }
 }
 
@@ -67,11 +71,31 @@ impl<T> List<T> for LinkedList<T> {
                 n.link(node);
                 self.size += 1;
             }
+            _ => {
+                self.first = Some(node);
+                self.last = Some(node);
+                self.size += 1;
+            }
         }
     }
 
-    fn remove_first(&self) -> Option<Box<Node<T>>> {
-
+    fn remove_first(&self) -> Option<Node<T>> {
+        match self.first {
+            Some(n) => {
+                assert!(!self.last.is_none());
+                let first: Node<T> = *n;
+                if n == self.last {
+                    self.first = None;
+                    self.last = None;
+                    return Some(first);
+                } else {
+                    self.first = n.next();
+                }
+                self.size -= 1;
+                return Some(first);
+            }
+            _ => None
+        }
     }
 }
 

@@ -8,7 +8,7 @@ A few of the aforementioned references I have used are as follows:
 
 - [Data Structures and Algorithms in Java (6e), Goodrich et al.](https://www.wiley.com/en-us/Data+Structures+and+Algorithms+in+Java%2C+6th+Edition-p-9781118771334)
 
-- [Introduction to Algorithms (3e) (CLRS), Cormen et al.](https://mitpress.mit.edu/books/introduction-algorithms)
+- [Introduction to Algorithms (3e) (CLRS), Cormen et al.](https://mitpress.mit.edu/books/introduction-algorithms-third-edition)
 
 ## Repository Structure
 
