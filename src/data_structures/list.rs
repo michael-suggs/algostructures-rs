@@ -1,7 +1,7 @@
 //! List data structures.
 
 use std::ops::{Index, IndexMut};
-use std::cell::RefCell;
+use std::cell::{Ref, RefMut, RefCell};
 use std::rc::Rc;
 
 type Link<T> = Option<Rc<Node<T>>>;
@@ -105,6 +105,10 @@ impl<T> DoublyLinkedList<T> {
         DoublyLinkedList { head: None, tail: None, size: 0 }
     }
 
+    fn len(&self) -> usize {
+        self.size
+    }
+
     fn add_front(&mut self, data: T) {
         let new_head = DoubleNode::new(data);
         match self.head.take() {
@@ -119,11 +123,123 @@ impl<T> DoublyLinkedList<T> {
             }
         }
     }
+
+    fn add_tail(&mut self, data: T) {
+        let new_tail = DoubleNode::new(data);
+        match self.tail.take() {
+            Some(n) => {
+                n.borrow_mut().next = Some(new_tail.clone());
+                new_tail.borrow_mut().prev = Some(n);
+                self.tail = Some(new_tail);
+            }
+            None => {
+                self.head = Some(new_tail.clone());
+                self.tail = Some(new_tail);
+            }
+        }
+    }
+
+    fn remove_head(&mut self) -> Option<T> {
+        self.head.take().map(|head| {
+            match head.borrow_mut().next.take() {
+                Some(next) => {
+                    next.borrow_mut().prev.take();
+                    self.head = Some(next);
+                }
+                None => {
+                    self.tail.take();
+                }
+            }
+            Rc::try_unwrap(head).ok().unwrap().into_inner().data
+        })
+    }
+
+    fn remove_tail(&mut self) -> Option<T> {
+        self.tail.take().map(|tail| {
+            match tail.borrow_mut().prev.take() {
+                Some(new_tail) => {
+                    new_tail.borrow_mut().next.take();
+                    self.tail = Some(new_tail);
+                }
+                None => { self.head.take(); }
+            }
+            Rc::try_unwrap(tail).ok().unwrap().into_inner().data
+        })
+    }
+
+    fn peek_head(&self) -> Option<Ref<T>> {
+        self.head.as_ref().map(|node| {
+            Ref::map(node.borrow(), |node| &node.data)
+        })
+    }
+
+    fn peek_head_mut(&mut self) -> Option<RefMut<T>> {
+        self.head.as_ref().map(|node| {
+            RefMut::map(node.borrow_mut(), |node| &mut node.data)
+        })
+    }
+
+    fn peek_tail(&self) -> Option<Ref<T>> {
+        self.tail.as_ref().map(|node| {
+            Ref::map(node.borrow(), |node| &node.data)
+        })
+    }
+
+    fn peek_tail_mut(&mut self) -> Option<RefMut<T>> {
+        self.tail.as_ref().map(|node| {
+            RefMut::map(node.borrow_mut(), |node| &mut node.data)
+        })
+    }
+}
+
+impl<T> Drop for DoublyLinkedList<T> {
+    fn drop(&mut self) {
+        while self.remove_head().is_some() {}
+    }
 }
 
 #[cfg(test)]
 mod test {
-    // use super::*;
+    use super::*;
+
+    #[test]
+    fn peek_double() {
+        let mut dlist: DoublyLinkedList<usize> = DoublyLinkedList::new();
+        assert!(dlist.peek_head().is_none());
+        assert!(dlist.peek_tail().is_none());
+        assert!(dlist.peek_head_mut().is_none());
+        assert!(dlist.peek_tail_mut().is_none());
+
+        dlist.add_front(1);
+        dlist.add_front(2);
+        dlist.add_front(3);
+
+        assert_eq!(&*dlist.peek_head().unwrap(), &3);
+        assert_eq!(&*dlist.peek_tail().unwrap(), &1);
+        assert_eq!(&*dlist.peek_head_mut().unwrap(), &mut 3);
+        assert_eq!(&*dlist.peek_tail_mut().unwrap(), &mut 1);
+    }
+
+    fn add_remove_double() {
+        let mut dlist: DoublyLinkedList<usize> = DoublyLinkedList::new();
+        assert_eq!(dlist.remove_head(), None);
+
+        dlist.add_front(1);
+        dlist.add_front(2);
+        dlist.add_front(3);
+
+        assert_eq!(dlist.remove_head(), Some(3));
+        assert_eq!(dlist.remove_head(), Some(2));
+
+        dlist.add_tail(4);
+        dlist.add_tail(5);
+
+        assert_eq!(dlist.remove_head(), Some(1));
+        assert_eq!(dlist.remove_tail(), Some(5));
+        assert_eq!(dlist.remove_tail(), Some(4));
+        assert_eq!(dlist.remove_head(), None);
+        assert_eq!(dlist.remove_tail(), None);
+    }
 
     // #[test]
     // fn peek() {
