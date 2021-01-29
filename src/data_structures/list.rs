@@ -7,6 +7,7 @@ use std::rc::Rc;
 type Link<T> = Option<Rc<Node<T>>>;
 type DoubleLink<T> = Option<Rc<RefCell<DoubleNode<T>>>>;
 
+/// Node for a singly-linked list.
 #[derive(Clone)]
 pub struct Node<T> {
     data: T,
@@ -38,6 +39,7 @@ pub struct LinkedList<T> {
     size: usize,
 }
 
+/// Singly-Linked List
 impl<T> LinkedList<T> {
     fn new() -> Self {
         LinkedList { head: None, size: 0}
@@ -62,6 +64,13 @@ impl<T> LinkedList<T> {
             head: self.head.as_ref().and_then(|node| node.next.clone()),
             size: self.size - 1,
         }
+    }
+
+    fn add_front(&self, data: T) -> LinkedList<T> {
+        LinkedList { head: Some(Rc::new(Node {
+            data: data,
+            next: self.head.clone(),
+        })), size: self.size + 1, }
     }
 }
 
@@ -203,6 +212,21 @@ mod test {
     use super::*;
 
     #[test]
+    fn add_remove_single() {
+        let list: LinkedList<usize> = LinkedList::new();
+        assert!(list.head().is_none());
+
+        let list = list.add_front(1).add_front(2).add_front(3);
+        assert_eq!(list.head(), Some(&3));
+        let list = list.tail();
+        assert_eq!(list.head(), Some(&2));
+        let list = list.tail();
+        assert_eq!(list.head(), Some(&1));
+        let list = list.tail();
+        assert_eq!(list.head(), None);
+    }
+
+    #[test]
     fn peek_double() {
         let mut dlist: DoublyLinkedList<usize> = DoublyLinkedList::new();
         assert!(dlist.peek_head().is_none());
@@ -220,6 +244,7 @@ mod test {
         assert_eq!(&*dlist.peek_tail_mut().unwrap(), &mut 1);
     }
 
+    #[test]
     fn add_remove_double() {
         let mut dlist: DoublyLinkedList<usize> = DoublyLinkedList::new();
         assert_eq!(dlist.remove_head(), None);
@@ -240,26 +265,4 @@ mod test {
         assert_eq!(dlist.remove_head(), None);
         assert_eq!(dlist.remove_tail(), None);
     }
-
-    // #[test]
-    // fn peek() {
-    //     let mut slist = LinkedList::new();
-
-    //     assert_eq!(slist.head(), None);
-    //     assert_eq!(slist.head_mut(), None);
-
-    //     slist.add_first(1);
-    //     slist.add_first(2);
-    //     slist.add_first(3);
-
-    //     assert_eq!(slist.head(), Some(&3));
-    //     assert_eq!(slist.head_mut(), Some(&mut 3));
-
-    //     slist.head_mut().map(|val| {
-    //         *val = 42
-    //     });
-
-    //     assert_eq!(slist.head(), Some(&42));
-    //     assert_eq!(slist.head_mut(), Some(&mut 42));
-    // }
 }
