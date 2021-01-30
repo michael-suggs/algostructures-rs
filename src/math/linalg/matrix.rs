@@ -7,7 +7,7 @@ use std::vec::Vec;
 pub struct Matrix<T: Clone> {
     pub shape: Vec<usize>,
     pub data: Vec<T>,
-    index: Vec<usize>,
+    index_offsets: Vec<usize>,
 }
 
 impl<T: Clone> Matrix<T> {
@@ -15,7 +15,7 @@ impl<T: Clone> Matrix<T> {
         Matrix {
             shape: shape.clone(),
             data: Vec::with_capacity(shape.into_iter().fold(1, |t, n| t * n)),
-            index: {
+            index_offsets: {
                 let mut index_vec: Vec<usize> = vec![1; shape.capacity()];
                 for i in 1..shape.capacity() {
                     index_vec[i - 1] = shape[i..].into_iter().fold(1, |t, n| t * n)
@@ -27,30 +27,23 @@ impl<T: Clone> Matrix<T> {
     }
 }
 
-// fn make_index_vec(v: &Vec<usize>) -> Vec<usize> {
-//     let mut index_vec: Vec<usize> = vec![1; v.capacity()];
-//     for i in 1..v.capacity() {
-//         index_vec[i - 1] = v[i..].into_iter().fold(1, |t, n| t * n)
-//     }
-//     index_vec[v.capacity() - 1] = 1;
-//     index_vec
-// }
+fn make_index_vec(v: &Vec<usize>) -> Vec<usize> {
+    let mut index_vec: Vec<usize> = vec![1; v.capacity()];
+    for i in 1..v.capacity() {
+        index_vec[i - 1] = v[i..].into_iter().fold(1, |t, n| t * n)
+    }
+    index_vec[v.capacity() - 1] = 1;
+    index_vec
+}
 
-// impl<T: Clone> Index<Vec<usize>> for Matrix<T> {
-//     type Output = Vec<T>;
+impl<T: Clone> Index<Vec<usize>> for Matrix<T> {
+    type Output = T;
 
-//     fn index(&self, idx: Vec<usize>) -> &Self::Output {
-//         // matrix[i][j][k] = m[i*(N*M) + j*M + k]
-//         let mut flat_idx: usize = 0;
-
-//         for i in 0..idx.capacity() {
-//             for j in i..std::cmp::min(idx.capacity(), self.data.capacity()) {
-//                 flat_idx +=
-//             }
-//         }
-//         &vec![]
-//     }
-// }
+    fn index(&self, idx: Vec<usize>) -> &Self::Output {
+        let matrix_index: usize = idx.iter().zip(self.index_offsets.iter()).map(|(x, y)| x * y).sum();
+        &self.data[matrix_index]
+    }
+}
 
 #[cfg(test)]
 mod test {
