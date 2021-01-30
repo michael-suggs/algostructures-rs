@@ -1,10 +1,11 @@
 //! Generic n-Dimensional Matrix
 
-use generic_array::GenericArray;
-use num_traits::Num;
+use std::error::Error;
+use rand::Rng;
 use std::ops::{Add, Div, Mul, Sub};
 use std::ops::{Drop, Index, IndexMut};
 use std::vec::Vec;
+use super::MatrixError;
 
 #[derive(PartialEq, Clone)]
 pub struct Matrix<T> {
@@ -29,11 +30,15 @@ impl<T> Matrix<T> {
         }
     }
 
-    pub fn transpose(&self) -> Self {
+    pub fn transpose(&self) -> Result<Self, MatrixError> {
         unimplemented!()
     }
 
-    pub fn iter_dim(&self, dim: usize) -> &Vec<T> {
+    pub fn iter_dim(&self, dim: usize) -> Result<&Vec<T>, MatrixError> {
+        unimplemented!()
+    }
+
+    pub fn invert(&self) -> Result<Self, MatrixError> {
         unimplemented!()
     }
 }
@@ -112,45 +117,56 @@ impl<T: Sub<Output = T> + Copy> Sub<T> for Matrix<T> {
     }
 }
 
-// impl<T: Clone + Mul> Mul for Matrix<T> {
-//     type Output = Self;
+impl<T: Clone + Mul> Mul for Matrix<T> {
+    type Output = Self;
 
-//     fn mul(self, other: Self) -> Self {
-//         if self.shape.last() != other.shape.first() {
-//             panic!("Matrices cannot be multiplied.")
-//         } else {
-//             Matrix {
-//                 shape: self.shape,
-//                 data:
-//             }
-//         }
-//     }
-// }
-
-
+    fn mul(self, other: Self) -> Self {
+        if self.shape.last() != other.shape.first() {
+            panic!("Matrices cannot be multiplied.")
+        } else {
+            Matrix {
+                shape: self.shape.last() * self.shape.first(),
+                data:
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    #[test]
-    fn test_matrix_new_sizing() {
+    fn setup_matrices() -> Vec<(Vec<usize>, Matrix<i32>)>{
         let s1d: Vec<usize> = vec![5];
         let s2d: Vec<usize> = vec![3, 7];
         let s3d: Vec<usize> = vec![4, 2, 3];
 
-        let m1d: Matrix<i32> = Matrix::new(&s1d);
-        let m2d: Matrix<i32> = Matrix::new(&s2d);
-        let m3d: Matrix<i32> = Matrix::new(&s3d);
+        let matrices: Vec<(Vec<usize>, Matrix<i32>)> = vec![
+            (s1d.clone(), Matrix::new(&s1d)),
+            (s2d.clone(), Matrix::new(&s2d)),
+            (s3d.clone(), Matrix::new(&s3d))
+        ];
 
-        assert_eq!(m1d.shape, s1d);
-        assert_eq!(m1d.data.capacity(), 5);
+        matrices
+    }
 
-        assert_eq!(m2d.shape, s2d);
-        assert_eq!(m2d.data.capacity(), 21);
+    #[test]
+    fn test_matrix_new_sizing() {
+        let matrices: Vec<(Vec<usize>, Matrix<i32>)> = setup_matrices();
 
-        assert_eq!(m3d.shape, s3d);
-        assert_eq!(m3d.data.capacity(), 24);
+        for (svec, mx) in matrices {
+            assert_eq!(mx.shape, svec);
+            assert_eq!(mx.data.capacity(), svec.iter().fold(1, |t, n| t * n));
+        }
+
+        // assert_eq!(m1d.shape, s1d);
+        // assert_eq!(m1d.data.capacity(), 5);
+
+        // assert_eq!(m2d.shape, s2d);
+        // assert_eq!(m2d.data.capacity(), 21);
+
+        // assert_eq!(m3d.shape, s3d);
+        // assert_eq!(m3d.data.capacity(), 24);
     }
 
     #[test]
@@ -160,5 +176,10 @@ mod test {
         let vec1idx: Vec<usize> = make_index_vec(&vec1);
         println!("{:?}, {:?}", vec1idx, vec1);
         assert_eq!(vec1idx, vec![20, 5, 1]);
+    }
+
+    #[test]
+    fn test_matrix_add_matrix() {
+        unimplemented!()
     }
 }
