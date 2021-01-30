@@ -1,7 +1,7 @@
 //! List data structures.
 
+use std::cell::{Ref, RefCell, RefMut};
 use std::ops::{Index, IndexMut};
-use std::cell::{Ref, RefMut, RefCell};
 use std::rc::Rc;
 
 type Link<T> = Option<Rc<Node<T>>>;
@@ -42,7 +42,10 @@ pub struct LinkedList<T> {
 /// Singly-Linked List
 impl<T> LinkedList<T> {
     fn new() -> Self {
-        LinkedList { head: None, size: 0}
+        LinkedList {
+            head: None,
+            size: 0,
+        }
     }
 
     fn len(&self) -> usize {
@@ -54,9 +57,7 @@ impl<T> LinkedList<T> {
     }
 
     fn head(&self) -> Option<&T> {
-        self.head.as_ref().map(|node| {
-            &node.data
-        })
+        self.head.as_ref().map(|node| &node.data)
     }
 
     fn tail(&self) -> LinkedList<T> {
@@ -67,10 +68,13 @@ impl<T> LinkedList<T> {
     }
 
     fn add_front(&self, data: T) -> LinkedList<T> {
-        LinkedList { head: Some(Rc::new(Node {
-            data: data,
-            next: self.head.clone(),
-        })), size: self.size + 1, }
+        LinkedList {
+            head: Some(Rc::new(Node {
+                data: data,
+                next: self.head.clone(),
+            })),
+            size: self.size + 1,
+        }
     }
 }
 
@@ -111,7 +115,11 @@ struct DoublyLinkedList<T> {
 
 impl<T> DoublyLinkedList<T> {
     fn new() -> Self {
-        DoublyLinkedList { head: None, tail: None, size: 0 }
+        DoublyLinkedList {
+            head: None,
+            tail: None,
+            size: 0,
+        }
     }
 
     fn len(&self) -> usize {
@@ -170,34 +178,36 @@ impl<T> DoublyLinkedList<T> {
                     new_tail.borrow_mut().next.take();
                     self.tail = Some(new_tail);
                 }
-                None => { self.head.take(); }
+                None => {
+                    self.head.take();
+                }
             }
             Rc::try_unwrap(tail).ok().unwrap().into_inner().data
         })
     }
 
     fn peek_head(&self) -> Option<Ref<T>> {
-        self.head.as_ref().map(|node| {
-            Ref::map(node.borrow(), |node| &node.data)
-        })
+        self.head
+            .as_ref()
+            .map(|node| Ref::map(node.borrow(), |node| &node.data))
     }
 
     fn peek_head_mut(&mut self) -> Option<RefMut<T>> {
-        self.head.as_ref().map(|node| {
-            RefMut::map(node.borrow_mut(), |node| &mut node.data)
-        })
+        self.head
+            .as_ref()
+            .map(|node| RefMut::map(node.borrow_mut(), |node| &mut node.data))
     }
 
     fn peek_tail(&self) -> Option<Ref<T>> {
-        self.tail.as_ref().map(|node| {
-            Ref::map(node.borrow(), |node| &node.data)
-        })
+        self.tail
+            .as_ref()
+            .map(|node| Ref::map(node.borrow(), |node| &node.data))
     }
 
     fn peek_tail_mut(&mut self) -> Option<RefMut<T>> {
-        self.tail.as_ref().map(|node| {
-            RefMut::map(node.borrow_mut(), |node| &mut node.data)
-        })
+        self.tail
+            .as_ref()
+            .map(|node| RefMut::map(node.borrow_mut(), |node| &mut node.data))
     }
 }
 

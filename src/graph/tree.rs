@@ -10,6 +10,4 @@ pub struct Node {
     pub parents: RefCell<Vec<Weak<Node>>>,
 }
 
-pub struct Tree {
-
-}
+pub struct Tree {}
